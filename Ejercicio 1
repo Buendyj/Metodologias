@@ -1,0 +1,94 @@
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+
+public class MatrixCalculator {
+    private int[][] matrixA;
+    private int[][] matrixC;
+    private int[][] matrixB;
+
+    public void loadMatricesFromFile(String fileA, String fileC) throws IOException {
+        matrixA = loadMatrixFromFile(fileA);
+        matrixC = loadMatrixFromFile(fileC);
+    }
+
+    private int[][] loadMatrixFromFile(String file) throws IOException {
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String line;
+            int rowCount = 0;
+            int[][] matrix;
+
+            // Read the matrix dimensions from the first line of the file
+            line = reader.readLine();
+            String[] dimensions = line.split(" ");
+            int rows = Integer.parseInt(dimensions[0]);
+            int cols = Integer.parseInt(dimensions[1]);
+
+            matrix = new int[rows][cols];
+
+            // Read the matrix values from the file
+            while ((line = reader.readLine()) != null) {
+                String[] values = line.split(" ");
+                for (int i = 0; i < values.length; i++) {
+                    matrix[rowCount][i] = Integer.parseInt(values[i]);
+                }
+                rowCount++;
+            }
+
+            return matrix;
+        }
+    }
+
+    public void calculateMatrixB() {
+        if (matrixA.length == 0 || matrixA[0].length == 0 || matrixC.length == 0 || matrixC[0].length == 0) {
+            throw new IllegalArgumentException("Matrices A and C must have at least one row and one column.");
+        }
+
+        if (matrixA.length != matrixC.length || matrixA[0].length != matrixC[0].length) {
+            throw new IllegalArgumentException("Matrices A and C must have the same dimensions.");
+        }
+
+        int rows = matrixA.length;
+        int cols = matrixA[0].length;
+
+        matrixB = new int[rows][cols];
+
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                matrixB[i][j] = matrixC[i][j] - matrixA[i][j];
+            }
+        }
+    }
+
+    public void saveMatrixBToFile(String fileB) throws IOException {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileB))) {
+            writer.write(matrixB.length + " " + matrixB[0].length);
+            writer.newLine();
+
+            for (int i = 0; i < matrixB.length; i++) {
+                for (int j = 0; j < matrixB[0].length; j++) {
+                    writer.write(matrixB[i][j] + " ");
+                }
+                writer.newLine();
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        MatrixCalculator calculator = new MatrixCalculator();
+
+        try {
+            calculator.loadMatricesFromFile("matrixA.txt", "matrixC.txt");
+            calculator.calculateMatrixB();
+            calculator.saveMatrixBToFile("matrixB.txt");
+            System.out.println("Calculation completed successfully.");
+        } catch (IOException e) {
+            System.err.println("An error occurred while reading or writing the files.");
+            e.printStackTrace();
+        } catch (IllegalArgumentException e) {
+            System.err.println("An error occurred: " + e.getMessage());
+        }
+    }
+}
